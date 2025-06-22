@@ -24,21 +24,125 @@ ul {
 
 .cal_wrapper {
   width: fit-content;
+  height: 100vh;
   background-image: linear-gradient(to top, rgba(217, 175, 217, 0.5) 0%, rgba(151, 217, 225, 0.5) 100%), url(../img/moritaka_img01.png);
   background-size: cover;
-  padding: 20px;
+  padding: 8px 30px 20px 30px;
 }
 
+/* ログイン、アウトボックス */
+.login_out_box {
+  display: flex;
+  justify-content: end;
+}
+
+.logout_section {
+  display: none;
+}
+
+.logout_section_inner {
+  display: flex;
+  gap: 10px;
+}
+
+#loginMenu,
+#logoutBtn {
+  color: #ff6f91;
+  font-weight: bold;
+  border-bottom: 2px solid lightsalmon;
+  text-shadow: 0 1px 1px lightslategray;
+  font-size: 1em;
+}
+
+#loginMenu:hover,
+#logoutBtn:hover {
+  cursor: pointer;
+}
+
+#userDisplayName {
+    color: #ff6f91;
+  text-shadow: 0 1px 1px lightslategray;
+
+}
+
+
+/* ログイン画面 */
+.login_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(85, 84, 84, 0.6);
+  z-index: 10;
+  display: none;
+}
+
+.login_section {
+  position: absolute;
+  background: #fff;
+  border: 1px solid gray;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  padding: 24px;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.login_section p {
+  display: inline-block;
+  width: fit-content;
+  border-bottom: 2px solid rgb(255, 122, 224);
+}
+
+.login_input_box {
+  display: flex;
+  gap: 30px;
+  height: 30px;
+}
+
+.login_input_box label {
+  width: 35%;
+  line-height: 30px;
+  border-left: 8px solid rgb(255, 122, 224);
+  padding-left: 8px;
+}
+
+.login_input_box input {
+  width: 60%;
+  height: 30px;
+}
+
+.login_section button {
+  width: 60%;
+  margin: 0 auto;
+  height: 30px;
+}
+
+
+.login_section_cancel {
+  display: flex;
+  margin-top: 10px;
+}
+
+.login_section .login_section_cancel button {
+  width: 20%;
+}
+
+
+/* カレンダータイトル */
 .m-plus-rounded-1c-regular {
   font-family: "M PLUS Rounded 1c", sans-serif;
-  /* font-weight: 900; */
   font-style: normal;
-
   font-size: 44px;
   color: #ff6f91;
   text-shadow: 1px 1px 2px rgba(255, 192, 203, 0.4);
 }
-
 
 .calendar-cute {
   font-family: 'Pacifico', cursive;
@@ -51,13 +155,13 @@ ul {
   text-align: center;
   padding: 10px 0;
   transform: rotate(-3deg);
-
 }
 
 .yellow_under_line {
   background: linear-gradient(transparent 50%, rgb(251, 244, 57) 100%);
 }
 
+/* カレンダーコンテイナー */
 .cal_container {
   width: fit-content;
   margin: 0 auto;
@@ -138,23 +242,15 @@ table td:nth-child(7) {
 
 /* カレンダー予定表示枠 */
 .multi_day_box {
-  /* flex: 1; */
   width: 100%;
   padding: 0;
-  /* overflow: scroll; */
-  /* background: lightpink; */
-
 }
 
 .multi_box_item {
   font-size: 0.6em;
   color: #000;
   width: 100%;
-  /* overflow: hidden; */
-  /* white-space: nowrap; */
-  /* text-overflow: ellipsis; */
   background: lightpink;
-
 }
 
 .memo_box {
@@ -181,32 +277,6 @@ table td:nth-child(7) {
 .isdisabled {
   background: rgb(240, 239, 239);
   opacity: 0.3;
-}
-
-/* 設定関係ボタン枠 */
-.setting {
-  display: flex;
-  gap: 10px;
-  padding: 4px 0 0 10px;
-}
-
-.setting button {
-  padding: 2px 4px;
-  background: rgb(250, 255, 224);
-  color: #ff6f91;
-  font-weight: bold;
-  border: 1px solid lightsalmon;
-  border-radius: 4px;
-  letter-spacing: 0.2em;
-  font-size: 1em;
-}
-
-.setting button:hover {
-  border: 2px solid #ff6f91;
-}
-
-#dataClear:hover {
-  color: red;
 }
 
 
@@ -306,11 +376,6 @@ table td:nth-child(7) {
   font-weight: normal;
 }
 
-/* .modal_item_repeat {
-  display: flex;
-  gap: 20px;
-} */
-
 .modal_item_buttons {
   display: flex;
   justify-content: center;
@@ -392,8 +457,6 @@ table td:nth-child(7) {
   margin-right: 10px;
 }
 
-
-
 .button_box {
   display: flex;
   justify-content: space-between;
@@ -403,11 +466,38 @@ table td:nth-child(7) {
   padding: 2px 4px;
 }
 
+/* 設定関係ボタン枠 */
+
+.setting {
+  display: flex;
+  gap: 10px;
+  padding: 4px 0 0 10px;
+  justify-content: end;
+}
+
+.setting button {
+  padding: 0px 4px;
+  background: rgb(250, 255, 224);
+  /* background: none; */
+  color: #ff6f91;
+  font-weight: bold;
+  /* border: none; */
+  border: 1px solid lightsalmon;
+  border-radius: 4px;
+  /* letter-spacing: 0.2em; */
+  font-size: 1em;
+}
+
+.setting button:hover {
+  border: 2px solid #ff6f91;
+  cursor: pointer;
+}
+
+
 /* 壁紙のCSS */
 .wallPaper_overlay {
   width: 90%;
   padding: 20px;
-  /* margin: 0 auto; */
   background: lightcyan;
   box-shadow: 2px 2px 4px 4px lightblue;
   display: none;
@@ -423,7 +513,6 @@ table td:nth-child(7) {
   flex-direction: column;
   gap: 20px;
 }
-
 
 .wallPaper_box p {
   border-left: 8px solid rgb(255, 122, 224);
