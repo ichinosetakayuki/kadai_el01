@@ -53,7 +53,8 @@ $("#month").html(year + '年' + (month + 1) + '月');
 days.forEach(d => $("#dayLabel").append(`<th class="day_of_week">${d}</th>`));
 
 
-// 当月のカレンダーに表示される前月の終わりの日々の配列を作る関数
+// 年と月を入力し当月のカレンダーに表示される
+// 前月の終わりの日々の配列を作る関数
 function getPrevMonthdays(year, month) {
   const prevMonthDate = new Date(year, month, 0);
   const d = prevMonthDate.getDate();
@@ -162,7 +163,7 @@ function makeCalendar(year, month) {
       }
     });
   }
-  makeHolidays();
+  makeHolidays(); // 祝日を描画する
 }
 
 makeCalendar(year, month);
@@ -185,7 +186,6 @@ function makeHolidays() {
     })
 }
 
-// makeHolidays();
 
 // 「前月」クリックで前月のカレンダーを描画する関数
 $("#prev").on("click", function () {
@@ -196,8 +196,7 @@ $("#prev").on("click", function () {
   }
   makeCalendar(year, month);
   renderSchedules(allScheduleData);
-  // initScheduleData();
-  // makeHolidays();
+
 });
 
 // 「翌月」クリックで翌月のカレンダーを描画する関数
@@ -209,174 +208,16 @@ $("#next").on("click", function () {
   }
   makeCalendar(year, month);
   renderSchedules(allScheduleData);
-  // initScheduleData();
-  // makeHolidays();
+
 });
 
 let allScheduleData = []; //グルーバル変数　予定データ全体
 
-renderSchedules(allScheduleData); //登録済み予定をカレンダーに表示する。
-//関数定義：予定の復元
-// function initScheduleData() {
-//   // const saved = localStorage.getItem('saveData');
-//   // if (saved) {
-//     // allScheduleData = JSON.parse(saved);
-//     // allScheduleData.forEach(
-//     //   item => { $(`#${item.date} .memo_box`).append(`<div class="memo_box_item">${item.title}</div>`) })
-//     // renderSchedules(documents);
-//   }
-// }
-
-// initScheduleData();//予定の復元
-
-// 日付を入力し、時刻をはずず関数
-function stripTime(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-//関数定義：予定をローカルストレージに保存し、カレンダーに表示する
-function saveScheduleData() {
-  const startDate = $("#startDate").val();
-  const endDate = $("#endDate").val();
-  const date = $("#dateBoxId").text();
-  const title = $("#title").val();
-  const start = $("#startTime").val();
-  const end = $("#endTime").val();
-  const place = $("#place").val();
-  const note = $("#note").val();
-
-  const repeat = $("#repeat").val(); //追加
-  const repeatEnd = $("#repeatEnd").val(); //追加
-
-  if (!startDate) {
-    alert("開始日を入力してください。");
-  }
-
-  let dates = [];
-
-  const user = auth.currentUser;
-
-  if (user) {
-    const userId = user.uid;
-
-    if (repeat !== "none" && repeatEnd) {
-      dates = getRepeatedDate(startDate, repeat, repeatEnd);
-      dates.forEach(day => {
-        const scheduleData = {
-          // id: Date.now() - Math.floor(Math.random() * 100000),
-          startDate: day,
-          endDate: day,
-          date: `day${day.replace(/-/g, "")}`,
-          //正規表現:全ての(=g)"-"を""に置き換える。例2025-06-19→20250619
-          title,
-          start,
-          end,
-          place,
-          note,
-          repeat,
-          repeatEnd,
-          userId: userId
-        };
-        addDoc(collection(db, "schedule"), scheduleData); //firebaseに追加
-        // allScheduleData.push(scheduleData);
-        // localStorage.setItem('saveData', JSON.stringify(allScheduleData));
-        // renderSchedules([scheduleData]); //予定をカレンダーに表示
-      });
-    } else {
-      dates = [startDate];
-      dates.forEach(day => {
-        const scheduleData = {
-          // id: Date.now() - Math.floor(Math.random() * 100000),
-          startDate: day,
-          endDate,
-          date: `day${day.replace(/-/g, "")}`,
-          title,
-          start,
-          end,
-          place,
-          note,
-          repeat,
-          repeatEnd,
-          userId: userId
-        };
-        addDoc(collection(db, "schedule"), scheduleData);
-        // allScheduleData.push(scheduleData);
-        // localStorage.setItem('saveData', JSON.stringify(allScheduleData));
-        // renderSchedules([scheduleData]); //予定をカレンダーに表示する
-      });
-    }
-  } else {
-    alert("予定を登録するにはログインしてください！");
-    console.warn("未ログインユーザーが予定登録を試みました");
-  }
-
-
-}
-
-function setupFirestoreCalendar(uid) {
-  const q = query(collection(db, "schedule"), where("userId", "==", uid), orderBy("startDate"));
-  console.log(uid);
-  onSnapshot(q, (querySnapshot) => {
-    // console.log(querySnapshot.docs);
-    // const documents = scheduleDocuments(querySnapshot.docs)
-    // console.log(documents);
-    allScheduleData = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    renderSchedules(allScheduleData);
-    console.log(allScheduleData);
-  }, (error) => {
-    console.error("イベント読み込みエラー（ログイン後）:", error);
-    // 権限エラーの場合、ユーザーにログアウトを促すなどの対応
-  });
-}
+//予定データ配列を入力し、予定をカレンダーに表示する。
+renderSchedules(allScheduleData); 
 
 
 
-// firestoreのドキュメントをわかりやすい配列に変換する
-// function scheduleDocuments(fireStoreDocs) {
-//   const documents = fireStoreDocs.map(doc => ({
-//     id:doc.id,
-//     ...doc.data()
-//   }))
-//   return documents;
-// }
-
-
-// 予定の配列を入力し、当該日に予定を描画する関数（複数日にまたがる予定も含む）
-function renderSchedules(dataArray) {
-  $(".memo_box").empty(); //一旦、既存予定を消去
-  $(".multi_day_box").empty(); //一旦、既存予定を消去
-  dataArray.forEach(item => {
-    let curDate = new Date(item.startDate);
-    const endDate = new Date(item.endDate);
-
-    const isSameDate =
-      curDate.getFullYear() === endDate.getFullYear() &&
-      curDate.getMonth() === endDate.getMonth() &&
-      curDate.getDate() === endDate.getDate();
-
-
-    if (isSameDate) { //1日の予定の場合
-      const y = curDate.getFullYear();
-      const m = (curDate.getMonth() + 1).toString().padStart(2, "0");
-      const d = curDate.getDate().toString().padStart(2, "0");
-      const dateId = `day${y}${m}${d}`;
-      $(`#${dateId} .memo_box`).append(`<div class="memo_box_item" data-id="${item.id}">${item.start}:${item.title}<div>`);
-    } else { //複数日にまたがる予定野場合
-      while (curDate <= endDate) {
-        const y = curDate.getFullYear();
-        const m = (curDate.getMonth() + 1).toString().padStart(2, "0");
-        const d = curDate.getDate().toString().padStart(2, "0");
-        const dateId = `day${y}${m}${d}`;
-
-        $(`#${dateId} .multi_day_box`).append(`<div class="multi_box_item" data-id="${item.id}">${item.start}:${item.title}<div>`);
-        curDate.setDate(curDate.getDate() + 1);
-      }
-    }
-  });
-}
 
 // 繰り返し予定：開始日、繰り返しタイプ、終了日を入力し、予定の日付リストを作る
 // getRepeatedDates関数を作る
@@ -424,61 +265,196 @@ function getRepeatedDate(startDateStr, repeatType, repeatEndStr) {
   return dates;
 }
 
+//予定入力画面で入力した予定をFirebaseに保存する関数
+function saveScheduleData() {
+  const startDate = $("#startDate").val();
+  const endDate = $("#endDate").val();
+  const date = $("#dateBoxId").text();
+  const title = $("#title").val();
+  const start = $("#startTime").val();
+  const end = $("#endTime").val();
+  const place = $("#place").val();
+  const note = $("#note").val();
 
-//保存ボタン処理
+  const repeat = $("#repeat").val(); //追加
+  const repeatEnd = $("#repeatEnd").val(); //追加
+
+  if (!startDate) {
+    alert("開始日を入力してください。");
+  }
+
+  let dates = [];
+
+  const user = auth.currentUser; // 認証されたユーザー
+
+  if (user) {
+    const userId = user.uid;
+
+    if (repeat !== "none" && repeatEnd) {
+      dates = getRepeatedDate(startDate, repeat, repeatEnd);
+      dates.forEach(day => {
+        const scheduleData = {
+          startDate: day,
+          endDate: day,
+          date: `day${day.replace(/-/g, "")}`,
+          //正規表現:全ての(=g)"-"を""に置き換える。例2025-06-19→20250619
+          title,
+          start,
+          end,
+          place,
+          note,
+          repeat,
+          repeatEnd,
+          userId: userId
+        };
+        addDoc(collection(db, "schedule"), scheduleData); //firebaseに追加
+      });
+    } else {
+      dates = [startDate];
+      dates.forEach(day => {
+        const scheduleData = {
+          startDate: day,
+          endDate,
+          date: `day${day.replace(/-/g, "")}`,
+          title,
+          start,
+          end,
+          place,
+          note,
+          repeat,
+          repeatEnd,
+          userId: userId
+        };
+        addDoc(collection(db, "schedule"), scheduleData);
+      });
+    }
+  } else {
+    alert("予定を登録するにはログインしてください！");
+    console.warn("未ログインユーザーが予定登録を試みました");
+  }
+}
+
+// リスナーを解除するための関数を格納する変数
+let unsubscribeFromFirestore = null;
+
+// Firestoreから予定データを読み込む関数
+function setupFirestoreCalendar(uid) {
+  // 既にリスナーが設定されている場合、一度解除してから再設定
+  if (unsubscribeFromFirestore) {
+    unsubscribeFromFirestore();
+    console.log("既存のFirestoreリスナーを解除しました（再設定前）。");
+  }
+  // ユーザーidが同じもの
+  const q = query(collection(db, "schedule"), where("userId", "==", uid), orderBy("startDate"));
+  // onSnapshotが返す解除関数を変数に格納する
+  unsubscribeFromFirestore = onSnapshot(q, (querySnapshot) => {
+    allScheduleData = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    renderSchedules(allScheduleData);
+    console.log("取得したFirestoreデータ:", allScheduleData);
+  }, (error) => {
+    console.error("イベント読み込みエラー（ログイン後）:", error); // 権限エラーの場合、ユーザーにログアウトを促すなどの対応
+    if (error.code === "permission-denied") {
+      console.warn("Firestoreアクセス権限がありません。ユーザーがログアウトしている可能性があります。");
+    }
+
+  });
+}
+
+
+// 予定の配列を入力し、当該日に予定を描画する関数（複数日にまたがる予定も含む）
+function renderSchedules(dataArray) {
+  $(".memo_box").empty(); //一旦、既存予定を消去
+  $(".multi_day_box").empty(); //一旦、既存予定を消去
+  dataArray.forEach(item => {
+    let curDate = new Date(item.startDate);
+    const endDate = new Date(item.endDate);
+
+    const isSameDate =
+      curDate.getFullYear() === endDate.getFullYear() &&
+      curDate.getMonth() === endDate.getMonth() &&
+      curDate.getDate() === endDate.getDate();
+
+
+    if (isSameDate) { //1日の予定の場合
+      const y = curDate.getFullYear();
+      const m = (curDate.getMonth() + 1).toString().padStart(2, "0");
+      const d = curDate.getDate().toString().padStart(2, "0");
+      const dateId = `day${y}${m}${d}`;
+      $(`#${dateId} .memo_box`).append(`<div class="memo_box_item" data-id="${item.id}">${item.start}:${item.title}<div>`);
+    } else { //複数日にまたがる予定野場合
+      while (curDate <= endDate) {
+        const y = curDate.getFullYear();
+        const m = (curDate.getMonth() + 1).toString().padStart(2, "0");
+        const d = curDate.getDate().toString().padStart(2, "0");
+        const dateId = `day${y}${m}${d}`;
+
+        $(`#${dateId} .multi_day_box`).append(`<div class="multi_box_item" data-id="${item.id}">${item.start}:${item.title}<div>`);
+        curDate.setDate(curDate.getDate() + 1);
+      }
+    }
+  });
+}
+
+//予定の保存ボタン処理
 $("#save").on("click", function () {
   saveScheduleData();
   $(".overlay").css('display', 'none');
 });
 
-
+// 日付を入力し、時刻をはずず関数
+function stripTime(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
 
 // 日をクリックして予定リスト画面を呼出
 $("tbody").on("click", ".date_box", function () {
-  // $(".event_overlay").css('display', 'block');
-  $(".event_overlay").slideDown(300);
 
-  const dateBoxId = $(this).attr('id');
-  $("#eventDayId").html(dateBoxId);
-  $("#dateBoxId").html(dateBoxId);
-  const sheduleDate = `${dateBoxId.slice(3, 7)}年${dateBoxId.slice(7, 9)}月${dateBoxId.slice(9, 11)}日`;
-  $("#eventDay").text(sheduleDate);
+  const user = auth.currentUser;
 
-  $("#eventList").empty();//一度リストを初期化
+  if (user) {
+    $(".event_overlay").slideDown(300);
 
+    const dateBoxId = $(this).attr('id');
+    $("#eventDayId").html(dateBoxId);
+    $("#dateBoxId").html(dateBoxId);
+    const sheduleDate = `${dateBoxId.slice(3, 7)}年${dateBoxId.slice(7, 9)}月${dateBoxId.slice(9, 11)}日`;
+    $("#eventDay").text(sheduleDate);
 
-  //予定がはいっていたら、その予定を表示
-  const result = $(this).find('.memo_box_item, .multi_box_item');
-  // const key = $(this).attr("data-key");
-  // console.log(result);
-  if (result.length) {
-    // const eventList = allScheduleData.filter(item => {
-    const eventList = allScheduleData.filter(item => {
-      const curDate = stripTime(new Date(
-        dateBoxId.slice(3, 7),
-        parseInt(dateBoxId.slice(7, 9)) - 1,
-        dateBoxId.slice(9, 11)
-      ));
+    $("#eventList").empty(); // 一度リストを初期化
 
-      // console.log(curDate);
-      const start = stripTime(new Date(item.startDate));
-      // console.log(item.startDate);
-      const end = stripTime(new Date(item.endDate));
-      return curDate >= start && curDate <= end;
-    });
+    //予定がはいっていたら、その予定を表示
+    const result = $(this).find('.memo_box_item, .multi_box_item');
+    if (result.length) {
+      const eventList = allScheduleData.filter(item => {
+        const curDate = stripTime(new Date(
+          dateBoxId.slice(3, 7),
+          parseInt(dateBoxId.slice(7, 9)) - 1,
+          dateBoxId.slice(9, 11)
+        ));
 
-    console.log(eventList);
-    eventList.forEach(item => {
-      $("#eventList").append(`<li class="eventList_item" data-id="${item.id}">${item.start}：${item.title}</li>`);
-    });
+        const start = stripTime(new Date(item.startDate));
+        const end = stripTime(new Date(item.endDate));
+        return curDate >= start && curDate <= end;
+      });
 
+      console.log(eventList);
+      eventList.forEach(item => {
+        $("#eventList").append(`<li class="eventList_item" data-id="${item.id}">${item.start}：${item.title}</li>`);
+      });
+
+    }
+  } else {
+    alert("予定を登録するにはログインしてください！");
+    console.warn("未ログインユーザーが予定登録を試みました");
   }
 });
 
 //予定リスト画面のキャンセルボタン
 // 予定リスト画面を閉じる
 $("#eventCancel").on("click", function () {
-  // $(".event_overlay").css('display', 'none');
   $(".event_overlay").slideUp(300);
 });
 
@@ -492,9 +468,9 @@ function changeFormatdate(dateBoxId) {
 }
 
 let previousOverlay = null;
-//現在の画面状態を記録する変数
+// 現在の画面状態を記録する変数
 
-//新規予定入力の表示、日付表示
+// 新規予定入力の表示、日付表示
 $("#newEntry").on("click", function () {
   previousOverlay = 'eventList';
 
@@ -509,7 +485,9 @@ $("#newEntry").on("click", function () {
   $("#place").val("");
   $("#note").val("");
   $("#repeat").val("");
+  $("#repeat").prop("disabled", false);
   $("#repeatEnd").val("");
+  $("#repeatEnd").prop("disabled", false);
   const sheduleDate = $("#eventDay").text();
   $("#modalTitle").text(sheduleDate);
   $(".event_overlay").css('display', 'none');
@@ -527,19 +505,11 @@ $("#eventList").on("click", ".eventList_item", function () {
 
   previousOverlay = 'eventList';
 
-  // const id = Number($(this).attr("data-id"));
   const id = $(this).attr("data-id");
-  // console.log(id);
-  // const text = $(this).text();
-  // const start = text.(0, 5);
-  // const title = text.substr(6);
-  // const targetDate = $("#eventDayId").text();
-
-  // const index = allScheduleData.findIndex(item => item.date === targetDate && item.title === title && item.start === start);
   const item = allScheduleData.find(item => item.id === id);
-  // console.log(item);
+
+
   if (item) {
-    // const item = allScheduleData[index];
 
     $("#title").val(item.title);
     $("#startDate").val(item.startDate);
@@ -554,7 +524,6 @@ $("#eventList").on("click", ".eventList_item", function () {
     $("#repeatEnd").prop("disabled", true);
     const sheduleDate = $("#eventDay").text();
     $("#modalTitle").text(sheduleDate);
-    // $("#modalTitle").text(`${item.date.slice(3, 7)}年${item.date.slice(7, 9)}月${item.date.slice(9, 11)}日`);
     $("#dateBoxId").text(item.date);
     $("#editingId").val(item.id);
     $(".event_overlay").css('display', 'none');
@@ -595,7 +564,6 @@ $("#upDate").on("click", function () {
 });
 
 // イベントの削除
-
 $("#delete").on("click", function () {
   const editingId = $("#editingId").val();
 
@@ -604,38 +572,7 @@ $("#delete").on("click", function () {
     renderSchedules(allScheduleData);
     $(".overlay").css('display', 'none');
   }
-  // const index = allScheduleData.findIndex(item => item.id === editingId);
-
-  // console.log(index);
-  // if (index !== "") {
-  //   allScheduleData.splice(index, 1);
-
-  //   localStorage.setItem('saveData', JSON.stringify(allScheduleData));
-  //   $(".memo_box").empty();
-  //   $(".multi_day_box").empty();
-  //   initScheduleData();
-
-  //   $(".overlay").css('display', 'none');
-  // }
 });
-
-
-//関数の定義：ローカルストレージデータ削除
-// function clearScheduleData() {
-//   const result = confirm('保存データを削除しますか？');
-//   if (!result)
-//     return;
-//   $(".memo_box").empty();
-//   $(".multi_day_box").empty();
-//   localStorage.removeItem('saveData');
-//   allScheduleData = [];
-//   alert('保存データを削除しました');
-// }
-
-//全予定データ削除処理
-// $("#dataClear").on("click", function () {
-//   clearScheduleData();
-// });
 
 //予定入力画面のキャンセルボタン
 $("#modalCancel").on("click", function () {
@@ -701,11 +638,18 @@ $("#toThisMonth").on("click", function () {
 });
 
 // --- ここからユーザー登録、ログイン関係 ---
+// ログインメニュー画面の表示
+$("#loginMenu").on("click", function () {
+  $(".login_overlay").slideDown(300);
+  $("#loginMenu").hide();
+  $("#loginEmail").val("");
+  $("#loginPassword").val("");
+});
 
 // 新規ユーザー登録
-$("#signup-buttton").on("click", function () {
-  const email = $("#login-email").val();
-  const password = $("#login-password").val();
+$("#signup-button").on("click", function () {
+  const email = $("#loginEmail").val();
+  const password = $("#loginPassword").val();
   createUserWithEmailAndPassword(auth, email, password)
     .then(function (userCredential) {
       // 登録成功
@@ -718,12 +662,13 @@ $("#signup-buttton").on("click", function () {
       console.error("ユーザー登録エラー", error.code, error.message);
       alert("ユーザー登録に失敗しました:" + error.message);
     })
+  $(".login_overlay").hide();
 });
 
 // ログイン（メール／パスワード）
-$("#login-button").on("click", function () {
-  const email = $("#login-email").val();
-  const password = $("#login-password").val();
+$("#loginButton").on("click", function () {
+  const email = $("#loginEmail").val();
+  const password = $("#loginPassword").val();
   signInWithEmailAndPassword(auth, email, password)
     .then(function (userCredential) {
       // ログイン成功
@@ -736,10 +681,11 @@ $("#login-button").on("click", function () {
       console.error("ログインエラー", error.code, error.message);
       alert("ログインに失敗しました:" + error.message);
     })
+  $(".login_overlay").hide();
 });
 
 // Googleログイン
-$("#google-login-button").on("click", function () {
+$("#googleLoginButton").on("click", function () {
   const provider = new GoogleAuthProvider();
   signInWithPopup(auth, provider)
     .then(function (result) {
@@ -753,10 +699,13 @@ $("#google-login-button").on("click", function () {
       console.error("Googleログインエラー:", error.code, error.message);
       alert("Googleログインに失敗しました:" + error.message);
     })
+  $(".login_overlay").hide();
 });
 
 // ログアウト
-$("#logout-button").on("click", function () {
+$("#logoutBtn").on("click", function () {
+  const result = confirm("ログアウトしますか？");
+  if (!result) return;
   signOut(auth).then(function () {
     // ログアウト成功
     console.log("ログアウトしました");
@@ -773,33 +722,36 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     // ユーザーがログインしている場合
     console.log("現在のユーザー:", user.uid, user.email);
+    $("#userDisplayName").text(user.email);
     setupFirestoreCalendar(user.uid);
+    $("#loginMenu").hide();
+    $(".logout_section").show();
   } else {
     // ユーザーがログアウトしている場合
     console.log("ユーザーはログアウトしています。");
+    $(".logout_section").hide();
+    $("#loginMenu").show();
+
+    // ---ログアウト時にFirestoreリスナーを解除する---
+    if (unsubscribeFromFirestore) {
+      unsubscribeFromFirestore(); // リスナーを停止
+      unsubscribeFromFirestore = null; // 変数をクリア
+      console.log("Firestoreリスナーを解除しました。");
+    }
+    clearCalendarData();
   }
 })
 
+// カレンダーの予定表示をクリアする関数
+function clearCalendarData() {
+  $(".memo_box").empty(); // 予定の表示を消去
+  $(".multi_day_box").empty(); // 予定の表示を消去
+  allScheduleData = [];
+  console.log("カレンダーデータをクリアしました。")
+}
 
-// 暦APIから、六曜を取得する関数(CORSポリシーによりNG)
-// function getKoyomiDay(year, month) {
-//   const url = "https://koyomi.zingsystem.com/api/";
-
-//   axios
-//   .get(url,{
-//     params:{
-//       mode: "m",
-//       cnt: "1",
-//       targetyyyy: String(year),
-//       targetmm: String(month + 1).padStart(2, "0"),
-//     }
-//   })
-//   .then(function(response){
-//     console.log(response.data);
-//   })
-//   .catch(function(error){
-//     console.error(error);
-//   })
-
-// }
-// getKoyomiDay(2025, 6);
+// ログインメニュー画面をキャンセルボタンで閉じる
+$("#loginCancel").on("click", function () {
+  $(".login_overlay").slideUp(300);
+  $("#loginMenu").show();
+});
